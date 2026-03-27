@@ -12,6 +12,9 @@ export const useProducts = () => {
     const unsubscribe = subscribeToProducts((data) => {
       setProducts(data);
       setLoading(false);
+    }, (error) => {
+      console.error('Products subscription error:', error);
+      setLoading(false);
     });
     return unsubscribe;
   }, []);
@@ -26,6 +29,9 @@ export const useCategories = () => {
   useEffect(() => {
     const unsubscribe = subscribeToCategories((data) => {
       setCategories(data);
+      setLoading(false);
+    }, (error) => {
+      console.error('Categories subscription error:', error);
       setLoading(false);
     });
     return unsubscribe;

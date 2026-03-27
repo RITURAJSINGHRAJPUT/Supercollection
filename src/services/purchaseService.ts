@@ -27,7 +27,10 @@ export const getPurchases = async (): Promise<Purchase[]> => {
   }) as Purchase[];
 };
 
-export const subscribeToPurchases = (callback: (purchases: Purchase[]) => void) => {
+export const subscribeToPurchases = (
+  callback: (purchases: Purchase[]) => void,
+  onError?: (error: any) => void
+) => {
   const q = query(collection(db, COLLECTION), orderBy('date', 'desc'));
   return onSnapshot(q, snapshot => {
     const purchases = snapshot.docs.map(d => {
@@ -39,6 +42,9 @@ export const subscribeToPurchases = (callback: (purchases: Purchase[]) => void) 
       };
     }) as Purchase[];
     callback(purchases);
+  }, error => {
+    console.error("Purchases listener error:", error);
+    onError?.(error);
   });
 };
 

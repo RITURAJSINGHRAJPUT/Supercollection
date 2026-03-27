@@ -27,6 +27,9 @@ const Purchases: React.FC = () => {
     const unsub = subscribeToPurchases((data) => {
       setPurchases(data);
       setPurchasesLoading(false);
+    }, (error) => {
+      console.error('Purchase subscription error:', error);
+      setPurchasesLoading(false);
     });
     return unsub;
   }, []);

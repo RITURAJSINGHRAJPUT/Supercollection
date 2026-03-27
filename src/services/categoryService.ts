@@ -22,14 +22,20 @@ export const getCategories = async (): Promise<Category[]> => {
   })) as Category[];
 };
 
-export const subscribeToCategories = (callback: (categories: Category[]) => void) => {
+export const subscribeToCategories = (
+  callback: (categories: Category[]) => void,
+  onError?: (error: any) => void
+) => {
   const q = query(collection(db, COLLECTION), orderBy('name', 'asc'));
   return onSnapshot(q, snapshot => {
     const categories = snapshot.docs.map(d => ({
       id: d.id,
-      ...d.data(),
+      ...d.data()
     })) as Category[];
     callback(categories);
+  }, error => {
+    console.error("Categories listener error:", error);
+    onError?.(error);
   });
 };
 

@@ -25,7 +25,10 @@ export const getProducts = async (): Promise<Product[]> => {
   })) as Product[];
 };
 
-export const subscribeToProducts = (callback: (products: Product[]) => void) => {
+export const subscribeToProducts = (
+  callback: (products: Product[]) => void,
+  onError?: (error: any) => void
+) => {
   const q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'));
   return onSnapshot(q, snapshot => {
     const products = snapshot.docs.map(d => ({
@@ -34,6 +37,9 @@ export const subscribeToProducts = (callback: (products: Product[]) => void) => 
       createdAt: (d.data().createdAt as Timestamp)?.toDate?.() || new Date(),
     })) as Product[];
     callback(products);
+  }, error => {
+    console.error("Products listener error:", error);
+    onError?.(error);
   });
 };
 

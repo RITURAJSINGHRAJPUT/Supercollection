@@ -21,6 +21,9 @@ const Dashboard: React.FC = () => {
     getPurchases().then((data) => {
       setPurchases(data);
       setPurchasesLoading(false);
+    }).catch(err => {
+      console.error('Error fetching purchases:', err);
+      setPurchasesLoading(false);
     });
   }, []);
 

@@ -10,6 +10,9 @@ export const useSales = () => {
     const unsubscribe = subscribeToSales((data) => {
       setSales(data);
       setLoading(false);
+    }, (error) => {
+      console.error('Sales subscription error:', error);
+      setLoading(false);
     });
     return unsubscribe;
   }, []);

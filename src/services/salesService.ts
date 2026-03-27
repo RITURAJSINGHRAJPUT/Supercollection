@@ -27,7 +27,10 @@ export const getSales = async (): Promise<Sale[]> => {
   }) as Sale[];
 };
 
-export const subscribeToSales = (callback: (sales: Sale[]) => void) => {
+export const subscribeToSales = (
+  callback: (sales: Sale[]) => void,
+  onError?: (error: any) => void
+) => {
   const q = query(collection(db, COLLECTION), orderBy('date', 'desc'));
   return onSnapshot(q, snapshot => {
     const sales = snapshot.docs.map(d => {
@@ -39,6 +42,9 @@ export const subscribeToSales = (callback: (sales: Sale[]) => void) => {
       };
     }) as Sale[];
     callback(sales);
+  }, error => {
+    console.error("Sales listener error:", error);
+    onError?.(error);
   });
 };
 
