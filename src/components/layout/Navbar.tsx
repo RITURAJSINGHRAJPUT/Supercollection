@@ -38,7 +38,7 @@ const Navbar: React.FC = () => {
               to="/admin/login"
               className="ml-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-primary-500 to-primary-600 hover:opacity-90 transition-opacity shadow-md shadow-primary-500/20"
             >
-              Admin
+              Login
             </Link>
           </div>
 
@@ -75,7 +75,7 @@ const Navbar: React.FC = () => {
               onClick={() => setIsOpen(false)}
               className="block px-4 py-2.5 rounded-lg text-sm font-semibold text-primary-500 hover:bg-primary-50 transition-all"
             >
-              Admin Panel
+              Login
             </Link>
           </div>
         </div>

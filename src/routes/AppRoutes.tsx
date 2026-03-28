@@ -14,9 +14,10 @@ import AdminProducts from '../pages/admin/Products';
 import AdminCategories from '../pages/admin/Categories';
 import AdminSales from '../pages/admin/Sales';
 import AdminPurchases from '../pages/admin/Purchases';
-import AdminAnalytics from '../pages/admin/Analytics';
 import AdminSettings from '../pages/admin/Settings';
 import QuickBill from '../pages/admin/QuickBill';
+import StockReport from '../pages/admin/StockReport';
+import AdminAnalytics from '../pages/admin/Analytics';
 import Sidebar from '../components/layout/Sidebar';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -118,6 +119,17 @@ const AppRoutes: React.FC = () => {
           <ProtectedRoute>
             <AdminLayout>
               <QuickBill />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/stock-report"
+        element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <StockReport />
             </AdminLayout>
           </ProtectedRoute>
         }

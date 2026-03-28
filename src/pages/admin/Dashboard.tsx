@@ -140,9 +140,14 @@ const Dashboard: React.FC = () => {
               <AlertCircle size={20} className="text-amber-500" />
               Low Stock Alerts
             </h3>
-            <Link to="/admin/products" className="text-sm text-primary-500 hover:text-primary-600 font-medium flex items-center gap-1">
-              Manage <ArrowUpRight size={16} />
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link to="/admin/stock-report" className="text-sm text-primary-500 hover:text-primary-600 font-medium flex items-center gap-1">
+                View Report <ArrowUpRight size={16} />
+              </Link>
+              <Link to="/admin/products" className="text-sm text-primary-500 hover:text-primary-600 font-medium flex items-center gap-1">
+                Manage <ArrowUpRight size={16} />
+              </Link>
+            </div>
           </div>
           <div className="space-y-4">
             {lowStockProducts.map(product => (
