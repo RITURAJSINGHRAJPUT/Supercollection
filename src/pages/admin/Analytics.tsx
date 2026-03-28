@@ -10,27 +10,46 @@ import SummaryCards from '../../components/analytics/SummaryCards';
 import SalesChart from '../../components/analytics/SalesChart';
 import CategoryChart from '../../components/analytics/CategoryChart';
 import Button from '../../components/common/Button';
+import { getQuickSales, getQuickPurchases } from '../../services/quickBillService';
 import type { Purchase } from '../../types/purchase';
+import type { QuickEntry } from '../../types/quickBill';
 
 const Analytics: React.FC = () => {
   const { products, loading: productsLoading } = useProducts();
   const { sales, loading: salesLoading } = useSales();
   const [purchases, setPurchases] = React.useState<Purchase[]>([]);
   const [purchasesLoading, setPurchasesLoading] = React.useState(true);
+  const [quickSales, setQuickSales] = React.useState<QuickEntry[]>([]);
+  const [quickPurchases, setQuickPurchases] = React.useState<QuickEntry[]>([]);
+  const [quickLoading, setQuickLoading] = React.useState(true);
   const [isExporting, setIsExporting] = React.useState(false);
   
   const reportRef = useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    getPurchases().then((data) => {
-      setPurchases(data);
-      setPurchasesLoading(false);
-    });
+    const fetchData = async () => {
+      try {
+        const [pData, qsData, qpData] = await Promise.all([
+          getPurchases(),
+          getQuickSales(),
+          getQuickPurchases()
+        ]);
+        setPurchases(pData);
+        setQuickSales(qsData);
+        setQuickPurchases(qpData);
+      } catch (err) {
+        console.error('Error fetching analytics data:', err);
+      } finally {
+        setPurchasesLoading(false);
+        setQuickLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
-  const analytics = useAnalytics(sales, purchases, products);
+  const analytics = useAnalytics(sales, purchases, products, quickSales, quickPurchases);
 
-  if (productsLoading || salesLoading || purchasesLoading) {
+  if (productsLoading || salesLoading || purchasesLoading || quickLoading) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>

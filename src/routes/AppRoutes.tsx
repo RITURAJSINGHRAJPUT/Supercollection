@@ -16,14 +16,15 @@ import AdminSales from '../pages/admin/Sales';
 import AdminPurchases from '../pages/admin/Purchases';
 import AdminAnalytics from '../pages/admin/Analytics';
 import AdminSettings from '../pages/admin/Settings';
+import QuickBill from '../pages/admin/QuickBill';
 import Sidebar from '../components/layout/Sidebar';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50">
       <Sidebar />
-      <div className="flex-1 lg:ml-64 transition-all duration-300">
-        <div className="p-4 sm:p-6 lg:p-8 mt-16 lg:mt-0">
+      <div className="lg:ml-64 transition-all duration-300">
+        <div className="p-4 sm:p-6 lg:p-8">
           {children}
         </div>
       </div>
@@ -107,6 +108,16 @@ const AppRoutes: React.FC = () => {
           <ProtectedRoute>
             <AdminLayout>
               <AdminSettings />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/quick-bill"
+        element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <QuickBill />
             </AdminLayout>
           </ProtectedRoute>
         }

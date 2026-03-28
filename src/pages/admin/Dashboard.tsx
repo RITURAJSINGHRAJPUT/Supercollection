@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUpRight, Package, TrendingUp, AlertCircle } from 'lucide-react';
+import { ArrowUpRight, TrendingUp, AlertCircle, Zap, ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SummaryCards from '../../components/analytics/SummaryCards';
 import SalesChart from '../../components/analytics/SalesChart';
@@ -8,29 +8,45 @@ import { useProducts } from '../../hooks/useProducts';
 import { useSales } from '../../hooks/useSales';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { getPurchases } from '../../services/purchaseService';
+import { getQuickSales, getQuickPurchases } from '../../services/quickBillService';
 import { formatCurrency } from '../../utils/formatDate';
 import { getDriveImageUrl, FALLBACK_IMAGE } from '../../utils/imageUtils';
 import type { Purchase } from '../../types/purchase';
+import type { QuickEntry } from '../../types/quickBill';
 
 const Dashboard: React.FC = () => {
   const { products, loading: productsLoading } = useProducts();
   const { sales, loading: salesLoading } = useSales();
   const [purchases, setPurchases] = React.useState<Purchase[]>([]);
   const [purchasesLoading, setPurchasesLoading] = React.useState(true);
+  const [quickSales, setQuickSales] = React.useState<QuickEntry[]>([]);
+  const [quickPurchases, setQuickPurchases] = React.useState<QuickEntry[]>([]);
+  const [quickDataLoading, setQuickDataLoading] = React.useState(true);
 
   React.useEffect(() => {
-    getPurchases().then((data) => {
-      setPurchases(data);
-      setPurchasesLoading(false);
-    }).catch(err => {
-      console.error('Error fetching purchases:', err);
-      setPurchasesLoading(false);
-    });
+    const fetchData = async () => {
+      try {
+        const [pData, qsData, qpData] = await Promise.all([
+          getPurchases(),
+          getQuickSales(),
+          getQuickPurchases()
+        ]);
+        setPurchases(pData);
+        setQuickSales(qsData);
+        setQuickPurchases(qpData);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+      } finally {
+        setPurchasesLoading(false);
+        setQuickDataLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
-  const analytics = useAnalytics(sales, purchases, products);
+  const analytics = useAnalytics(sales, purchases, products, quickSales, quickPurchases);
 
-  if (productsLoading || salesLoading || purchasesLoading) {
+  if (productsLoading || salesLoading || purchasesLoading || quickDataLoading) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
@@ -48,12 +64,15 @@ const Dashboard: React.FC = () => {
           <h1 className="text-2xl font-bold text-dark-800">Dashboard Overview</h1>
           <p className="text-dark-400">Welcome back, here's what's happening today.</p>
         </div>
-        <div className="flex gap-3">
-          <Link to="/admin/sales" className="btn-primary shadow-sm">
+        <div className="flex flex-wrap gap-3">
+          <Link to="/admin/quick-bill" className="btn-outline flex items-center gap-2 shadow-sm">
+            <Zap size={18} /> Quick Bill
+          </Link>
+          <Link to="/admin/sales" className="btn-primary flex items-center gap-2 shadow-sm">
             <TrendingUp size={18} /> Add Sale
           </Link>
-          <Link to="/admin/products" className="btn-secondary shadow-sm">
-            <Package size={18} /> Add Product
+          <Link to="/admin/purchases" className="btn-secondary flex items-center gap-2 shadow-sm">
+            <ShoppingCart size={18} /> Add Purchase
           </Link>
         </div>
       </div>

@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   ShoppingBag,
+  Zap,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { APP_NAME } from '../../utils/constants';
@@ -24,6 +25,7 @@ const iconMap: Record<string, React.FC<{ size?: number; className?: string }>> =
   ShoppingCart,
   BarChart3,
   Settings,
+  Zap,
 };
 
 const navItems = [
@@ -32,6 +34,7 @@ const navItems = [
   { label: 'Categories', path: '/admin/categories', icon: 'Tags' },
   { label: 'Sales', path: '/admin/sales', icon: 'TrendingUp' },
   { label: 'Purchases', path: '/admin/purchases', icon: 'ShoppingCart' },
+  { label: 'Quick Bill', path: '/admin/quick-bill', icon: 'Zap' },
   { label: 'Analytics', path: '/admin/analytics', icon: 'BarChart3' },
   { label: 'Settings', path: '/admin/settings', icon: 'Settings' },
 ];

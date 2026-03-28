@@ -74,7 +74,7 @@ const Categories: React.FC = () => {
                 </div>
                 <button
                   onClick={() => handleDelete(category.id)}
-                  className="p-2 text-dark-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors sm:opacity-0 sm:group-hover:opacity-100 self-end sm:self-auto"
+                  className="p-2 text-dark-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors md:opacity-0 group-hover:opacity-100 self-end sm:self-auto"
                   title="Delete Category"
                 >
                   <Trash2 size={20} />

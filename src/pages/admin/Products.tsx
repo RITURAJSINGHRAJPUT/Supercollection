@@ -184,7 +184,7 @@ const Products: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-3 px-6 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end gap-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => handleOpenModal(product)}
                           className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"

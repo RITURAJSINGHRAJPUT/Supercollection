@@ -157,7 +157,7 @@ const Sales: React.FC = () => {
                       <td className="py-3 px-6 text-center">
                         <button
                           onClick={() => handleDelete(sale.id, sale.productId, sale.quantity)}
-                          className="p-1.5 text-dark-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100 mx-auto"
+                          className="p-1.5 text-dark-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors md:opacity-0 group-hover:opacity-100 mx-auto"
                           title="Delete Record"
                         >
                           <Trash2 size={18} />

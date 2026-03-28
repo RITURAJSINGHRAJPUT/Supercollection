@@ -1,6 +1,7 @@
 import type { Sale } from '../types/sales';
 import type { Purchase } from '../types/purchase';
 import type { Product } from '../types/product';
+import type { QuickEntry } from '../types/quickBill';
 import { getMonthYear } from '../utils/formatDate';
 
 export interface AnalyticsData {
@@ -18,10 +19,18 @@ export interface AnalyticsData {
 export const computeAnalytics = (
   sales: Sale[],
   purchases: Purchase[],
-  products: Product[]
+  products: Product[],
+  quickSales: QuickEntry[] = [],
+  quickPurchases: QuickEntry[] = []
 ): AnalyticsData => {
-  const totalSales = sales.reduce((sum, s) => sum + s.total, 0);
-  const totalPurchases = purchases.reduce((sum, p) => sum + p.total, 0);
+  const standardSalesTotal = sales.reduce((sum, s) => sum + s.total, 0);
+  const quickSalesTotal = quickSales.reduce((sum, s) => sum + s.total, 0);
+  const totalSales = standardSalesTotal + quickSalesTotal;
+
+  const standardPurchasesTotal = purchases.reduce((sum, p) => sum + p.total, 0);
+  const quickPurchasesTotal = quickPurchases.reduce((sum, p) => sum + p.total, 0);
+  const totalPurchases = standardPurchasesTotal + quickPurchasesTotal;
+
   const profit = totalSales - totalPurchases;
 
   // Category-wise sales
@@ -32,6 +41,9 @@ export const computeAnalytics = (
       const cat = product.category;
       categoryMap.set(cat, (categoryMap.get(cat) || 0) + sale.total);
     }
+  });
+  quickSales.forEach(sale => {
+    categoryMap.set(sale.category, (categoryMap.get(sale.category) || 0) + sale.total);
   });
   const categorySales = Array.from(categoryMap.entries())
     .map(([category, total]) => ({ category, total }))
@@ -66,7 +78,19 @@ export const computeAnalytics = (
     existing.sales += sale.total;
     monthlyMap.set(month, existing);
   });
+  quickSales.forEach(sale => {
+    const month = getMonthYear(new Date(sale.date));
+    const existing = monthlyMap.get(month) || { sales: 0, purchases: 0 };
+    existing.sales += sale.total;
+    monthlyMap.set(month, existing);
+  });
   purchases.forEach(purchase => {
+    const month = getMonthYear(new Date(purchase.date));
+    const existing = monthlyMap.get(month) || { sales: 0, purchases: 0 };
+    existing.purchases += purchase.total;
+    monthlyMap.set(month, existing);
+  });
+  quickPurchases.forEach(purchase => {
     const month = getMonthYear(new Date(purchase.date));
     const existing = monthlyMap.get(month) || { sales: 0, purchases: 0 };
     existing.purchases += purchase.total;
@@ -84,7 +108,19 @@ export const computeAnalytics = (
     existing.sales += sale.total;
     dailyMap.set(date, existing);
   });
+  quickSales.forEach(sale => {
+    const date = new Date(sale.date).toISOString().split('T')[0];
+    const existing = dailyMap.get(date) || { sales: 0, purchases: 0 };
+    existing.sales += sale.total;
+    dailyMap.set(date, existing);
+  });
   purchases.forEach(purchase => {
+    const date = new Date(purchase.date).toISOString().split('T')[0];
+    const existing = dailyMap.get(date) || { sales: 0, purchases: 0 };
+    existing.purchases += purchase.total;
+    dailyMap.set(date, existing);
+  });
+  quickPurchases.forEach(purchase => {
     const date = new Date(purchase.date).toISOString().split('T')[0];
     const existing = dailyMap.get(date) || { sales: 0, purchases: 0 };
     existing.purchases += purchase.total;
@@ -99,8 +135,8 @@ export const computeAnalytics = (
     totalSales,
     totalPurchases,
     profit,
-    salesCount: sales.length,
-    purchasesCount: purchases.length,
+    salesCount: sales.length + quickSales.length,
+    purchasesCount: purchases.length + quickPurchases.length,
     categorySales,
     topProducts,
     monthlySales,

@@ -5,6 +5,12 @@ import { useSales } from '../../hooks/useSales';
 import { getPurchases } from '../../services/purchaseService';
 import { clearAllSales } from '../../services/salesService';
 import { clearAllPurchases } from '../../services/purchaseService';
+import { 
+  getQuickSales, 
+  getQuickPurchases, 
+  clearAllQuickSales, 
+  clearAllQuickPurchases 
+} from '../../services/quickBillService';
 import { exportToJSON, exportToCSV } from '../../utils/dataExport';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
@@ -20,13 +26,19 @@ const Settings: React.FC = () => {
 
   const handleExportData = async (type: 'json' | 'csv') => {
     try {
-      const purchases = await getPurchases();
+      const [purchases, quickSales, quickPurchases] = await Promise.all([
+        getPurchases(),
+        getQuickSales(),
+        getQuickPurchases()
+      ]);
       
       const fullData = {
         products,
         categories,
         sales,
         purchases,
+        quickSales,
+        quickPurchases,
       };
 
       if (type === 'json') {
@@ -53,13 +65,17 @@ const Settings: React.FC = () => {
     try {
       setIsClearing(true);
       
-      // Clear all sales and purchases
-      await clearAllSales();
-      await clearAllPurchases();
+      // Clear all sales and purchases (standard and quick)
+      await Promise.all([
+        clearAllSales(),
+        clearAllPurchases(),
+        clearAllQuickSales(),
+        clearAllQuickPurchases()
+      ]);
       
       setClearConfirmation('');
       setIsClearModalOpen(false);
-      alert('Sales and purchase data cleared successfully. Products and Categories were kept intact.');
+      alert('All transactional data (including Quick Bill entries) cleared successfully. Products and Categories were kept intact.');
     } catch (error) {
       console.error('Clear data failed:', error);
       alert('Failed to clear data');
@@ -146,6 +162,7 @@ const Settings: React.FC = () => {
             <ul className="list-disc pl-5 text-sm text-amber-700 space-y-1">
               <li>Every single Sale record will be permanently deleted.</li>
               <li>Every single Purchase record will be permanently deleted.</li>
+              <li>Every single Quick Bill entry will be permanently deleted.</li>
               <li>Your Analytics dashboard will be completely reset.</li>
               <li>Your Products and Categories will remain unchanged.</li>
               <li>Your Product stock counts will remain at their current numbers.</li>
