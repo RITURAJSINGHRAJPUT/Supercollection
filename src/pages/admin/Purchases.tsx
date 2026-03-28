@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, ShoppingCart } from 'lucide-react';
-import { useProducts } from '../../hooks/useProducts';
+import { useProducts, useCategories } from '../../hooks/useProducts';
 import { subscribeToPurchases, addPurchase, deletePurchase } from '../../services/purchaseService';
 import { updateStock } from '../../services/productService';
 import Button from '../../components/common/Button';
@@ -11,9 +11,11 @@ import type { Purchase, PurchaseFormData } from '../../types/purchase';
 
 const Purchases: React.FC = () => {
   const { products, loading: productsLoading } = useProducts();
+  const { categories } = useCategories();
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [purchasesLoading, setPurchasesLoading] = useState(true);
   
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<PurchaseFormData>({
@@ -66,6 +68,7 @@ const Purchases: React.FC = () => {
         costPrice: 0,
         date: getToday(),
       });
+      setSelectedCategory('');
       setIsModalOpen(false);
     } catch (error) {
       console.error('Error recording purchase:', error);
@@ -180,19 +183,40 @@ const Purchases: React.FC = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
+            <label className="block text-sm font-medium text-dark-600 mb-1.5">Select Category</label>
+            <select
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+              required
+              value={selectedCategory}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                setFormData(prev => ({ ...prev, productId: '' }));
+              }}
+            >
+              <option value="" disabled>Choose a category...</option>
+              {categories.map(c => (
+                <option key={c.id} value={c.name}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
              <label className="block text-sm font-medium text-dark-600 mb-1.5">Select Product</label>
              <select
-               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500/30 disabled:bg-gray-50 disabled:cursor-not-allowed"
                required
                value={formData.productId}
                onChange={(e) => handleProductSelect(e.target.value)}
+               disabled={!selectedCategory}
              >
-               <option value="" disabled>Search or select product...</option>
-               {products.map(p => (
-                 <option key={p.id} value={p.id}>
-                   {p.name} (Current Stock: {p.stock})
-                 </option>
-               ))}
+               <option value="" disabled>Select product...</option>
+               {products
+                 .filter(p => !selectedCategory || p.category === selectedCategory)
+                 .map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} (Current Stock: {p.stock})
+                  </option>
+                ))}
              </select>
           </div>
 

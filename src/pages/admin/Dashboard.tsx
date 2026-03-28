@@ -9,6 +9,7 @@ import { useSales } from '../../hooks/useSales';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import { getPurchases } from '../../services/purchaseService';
 import { formatCurrency } from '../../utils/formatDate';
+import { getDriveImageUrl, FALLBACK_IMAGE } from '../../utils/imageUtils';
 import type { Purchase } from '../../types/purchase';
 
 const Dashboard: React.FC = () => {
@@ -129,9 +130,15 @@ const Dashboard: React.FC = () => {
               <div key={product.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-amber-100">
                 <div className="flex items-center gap-3">
                   <img 
-                    src={product.imageUrl || 'https://via.placeholder.com/40'} 
+                    src={getDriveImageUrl(product.imageUrl) || FALLBACK_IMAGE} 
                     alt={product.name} 
                     className="w-10 h-10 object-cover rounded-lg bg-gray-100"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      const img = e.target as HTMLImageElement;
+                      img.onerror = null;
+                      img.src = FALLBACK_IMAGE;
+                    }}
                   />
                   <div>
                     <p className="font-medium text-dark-800 line-clamp-1">{product.name}</p>

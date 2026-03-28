@@ -6,6 +6,7 @@ import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Modal from '../../components/common/Modal';
 import { formatCurrency } from '../../utils/formatDate';
+import { getDriveImageUrl, FALLBACK_IMAGE } from '../../utils/imageUtils';
 import type { Product, ProductFormData } from '../../types/product';
 
 const Products: React.FC = () => {
@@ -152,9 +153,15 @@ const Products: React.FC = () => {
                     <td className="py-3 px-6">
                       <div className="flex items-center gap-3">
                         <img 
-                          src={product.imageUrl || 'https://via.placeholder.com/40'} 
+                          src={getDriveImageUrl(product.imageUrl) || FALLBACK_IMAGE} 
                           alt={product.name} 
                           className="w-10 h-10 rounded-lg object-cover bg-gray-100 border border-gray-200"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            const img = e.target as HTMLImageElement;
+                            img.onerror = null;
+                            img.src = FALLBACK_IMAGE;
+                          }}
                         />
                         <span className="font-medium text-dark-800">{product.name}</span>
                       </div>

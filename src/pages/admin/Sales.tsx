@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, TrendingUp } from 'lucide-react';
 import { useSales } from '../../hooks/useSales';
-import { useProducts } from '../../hooks/useProducts';
+import { useProducts, useCategories } from '../../hooks/useProducts';
 import { addSale, deleteSale } from '../../services/salesService';
 import { updateStock } from '../../services/productService';
 import Button from '../../components/common/Button';
@@ -13,7 +13,9 @@ import type { SaleFormData } from '../../types/sales';
 const Sales: React.FC = () => {
   const { sales, loading: salesLoading } = useSales();
   const { products, loading: productsLoading } = useProducts();
+  const { categories } = useCategories();
   
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<SaleFormData>({
@@ -64,6 +66,7 @@ const Sales: React.FC = () => {
         sellingPrice: 0,
         date: getToday(),
       });
+      setSelectedCategory('');
       setIsModalOpen(false);
     } catch (error) {
       console.error('Error recording sale:', error);
@@ -177,19 +180,40 @@ const Sales: React.FC = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
+            <label className="block text-sm font-medium text-dark-600 mb-1.5">Select Category</label>
+            <select
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+              required
+              value={selectedCategory}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                setFormData(prev => ({ ...prev, productId: '' }));
+              }}
+            >
+              <option value="" disabled>Choose a category...</option>
+              {categories.map(c => (
+                <option key={c.id} value={c.name}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
              <label className="block text-sm font-medium text-dark-600 mb-1.5">Select Product</label>
              <select
-               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500/30 disabled:bg-gray-50 disabled:cursor-not-allowed"
                required
                value={formData.productId}
                onChange={(e) => handleProductSelect(e.target.value)}
+               disabled={!selectedCategory}
              >
-               <option value="" disabled>Search or select product...</option>
-               {products.map(p => (
-                 <option key={p.id} value={p.id}>
-                   {p.name} (Stock: {p.stock} | {formatCurrency(p.price)})
-                 </option>
-               ))}
+               <option value="" disabled>Select product...</option>
+               {products
+                 .filter(p => !selectedCategory || p.category === selectedCategory)
+                 .map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} (Stock: {p.stock} | {formatCurrency(p.price)})
+                  </option>
+                ))}
              </select>
           </div>
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { MessageCircle } from 'lucide-react';
 import { openWhatsApp } from '../../utils/whatsapp';
 import { formatCurrency } from '../../utils/formatDate';
+import { getDriveImageUrl, FALLBACK_IMAGE } from '../../utils/imageUtils';
 import type { Product } from '../../types/product';
 
 interface ProductCardProps {
@@ -18,12 +19,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-gray-100">
         <img
-          src={product.imageUrl || 'https://via.placeholder.com/300x300?text=No+Image'}
+          src={getDriveImageUrl(product.imageUrl) || FALLBACK_IMAGE}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           loading="lazy"
+          referrerPolicy="no-referrer"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x300?text=No+Image';
+            const img = e.target as HTMLImageElement;
+            img.onerror = null; // Prevent infinite loops
+            img.src = FALLBACK_IMAGE;
           }}
         />
         {/* Category Badge */}
