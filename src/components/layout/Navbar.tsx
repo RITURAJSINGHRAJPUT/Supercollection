@@ -10,13 +10,13 @@ const Navbar: React.FC = () => {
   return (
     <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur-lg border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:shadow-primary-500/40 transition-shadow">
-              <ShoppingBag size={18} className="text-white" />
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:shadow-primary-500/40 transition-shadow">
+              <ShoppingBag size={16} className="text-white" />
             </div>
-            <span className="text-xl font-bold text-gradient">{APP_NAME}</span>
+            <span className="text-lg font-bold text-gradient">{APP_NAME}</span>
           </Link>
 
           {/* Desktop Nav */}

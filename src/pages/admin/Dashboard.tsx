@@ -64,15 +64,15 @@ const Dashboard: React.FC = () => {
           <h1 className="text-2xl font-bold text-dark-800">Dashboard Overview</h1>
           <p className="text-dark-400">Welcome back, here's what's happening today.</p>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <Link to="/admin/quick-bill" className="btn-outline flex items-center gap-2 shadow-sm">
-            <Zap size={18} /> Quick Bill
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full sm:w-auto">
+          <Link to="/admin/quick-bill" className="btn-outline flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm text-[10px] sm:text-xs md:text-sm px-1 sm:px-3 py-2 whitespace-nowrap">
+            <Zap size={14} className="shrink-0" /> Quick Bill
           </Link>
-          <Link to="/admin/sales" className="btn-primary flex items-center gap-2 shadow-sm">
-            <TrendingUp size={18} /> Add Sale
+          <Link to="/admin/sales" className="btn-primary flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm text-[10px] sm:text-xs md:text-sm px-1 sm:px-3 py-2 whitespace-nowrap">
+            <TrendingUp size={14} className="shrink-0" /> Add Sale
           </Link>
-          <Link to="/admin/purchases" className="btn-secondary flex items-center gap-2 shadow-sm">
-            <ShoppingCart size={18} /> Add Purchase
+          <Link to="/admin/purchases" className="btn-secondary flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm text-[10px] sm:text-xs md:text-sm px-1 sm:px-3 py-2 whitespace-nowrap">
+            <ShoppingCart size={14} className="shrink-0" /> Purchase
           </Link>
         </div>
       </div>
