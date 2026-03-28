@@ -9,6 +9,20 @@
     <link rel="apple-touch-icon" href="/pwa-192x192.png" />
     <link rel="manifest" href="/manifest.json" />
     <title>Super Collection</title>
+    <script>
+      // Handle chunk load errors (common after new deployments)
+      window.addEventListener('error', (e) => {
+        if (e.message && (e.message.includes('chunk') || e.message.includes('Loading chunk'))) {
+          const lastReload = localStorage.getItem('last-chunk-reload');
+          const now = Date.now();
+          // Reload only once every 10 seconds to avoid infinite loops
+          if (!lastReload || (now - parseInt(lastReload)) > 10000) {
+            localStorage.setItem('last-chunk-reload', now.toString());
+            window.location.reload(true);
+          }
+        }
+      }, true);
+    </script>
   </head>
   <body>
     <div id="root"></div>
