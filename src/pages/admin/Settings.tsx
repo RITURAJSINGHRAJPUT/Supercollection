@@ -5,6 +5,8 @@ import { useSales } from '../../hooks/useSales';
 import { getPurchases } from '../../services/purchaseService';
 import { clearAllSales } from '../../services/salesService';
 import { clearAllPurchases } from '../../services/purchaseService';
+import { clearAllProducts } from '../../services/productService';
+import { clearAllCategories } from '../../services/categoryService';
 import { 
   getQuickSales, 
   getQuickPurchases, 
@@ -21,6 +23,7 @@ const Settings: React.FC = () => {
   const { sales } = useSales();
   
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<'transactions' | 'full'>('transactions');
   const [isClearing, setIsClearing] = useState(false);
   const [clearConfirmation, setClearConfirmation] = useState('');
 
@@ -60,28 +63,43 @@ const Settings: React.FC = () => {
 
   const handleClearData = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (clearConfirmation !== 'DELETE') return;
+    const expectedCode = modalType === 'full' ? 'RESET STORE' : 'CLEAR TRANSACTIONS';
+    if (clearConfirmation !== expectedCode) return;
 
     try {
       setIsClearing(true);
       
-      // Clear all sales and purchases (standard and quick)
-      await Promise.all([
+      const clearPromises = [
         clearAllSales(),
         clearAllPurchases(),
         clearAllQuickSales(),
         clearAllQuickPurchases()
-      ]);
+      ];
+
+      if (modalType === 'full') {
+        clearPromises.push(clearAllProducts());
+        clearPromises.push(clearAllCategories());
+      }
+      
+      await Promise.all(clearPromises);
       
       setClearConfirmation('');
       setIsClearModalOpen(false);
-      alert('All transactional data (including Quick Bill entries) cleared successfully. Products and Categories were kept intact.');
+      alert(modalType === 'full' 
+        ? 'The complete store database has been reset successfully.' 
+        : 'All transactional data (including Quick Bill entries) cleared successfully. Products and Categories were kept intact.'
+      );
     } catch (error) {
       console.error('Clear data failed:', error);
       alert('Failed to clear data');
     } finally {
       setIsClearing(false);
     }
+  };
+
+  const openClearModal = (type: 'transactions' | 'full') => {
+    setModalType(type);
+    setIsClearModalOpen(true);
   };
 
   return (
@@ -138,10 +156,27 @@ const Settings: React.FC = () => {
           </div>
           <Button 
             variant="danger" 
-            onClick={() => setIsClearModalOpen(true)}
+            onClick={() => openClearModal('transactions')}
             className="whitespace-nowrap"
           >
             Clear Records
+          </Button>
+        </div>
+
+        <div className="mt-4 p-5 border border-red-300 bg-red-100 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h3 className="font-bold text-red-700">Full Store Reset</h3>
+            <p className="text-sm text-red-600 mt-1">
+              Deletes EVERYTHING: Products, Categories, Sales, and Purchases. <br className="hidden md:block"/>
+              <strong>This action is irreversible and wipes the entire store.</strong>
+            </p>
+          </div>
+          <Button 
+            variant="danger" 
+            onClick={() => openClearModal('full')}
+            className="whitespace-nowrap bg-red-600 hover:bg-red-700"
+          >
+            Full Reset
           </Button>
         </div>
       </div>
@@ -164,13 +199,22 @@ const Settings: React.FC = () => {
               <li>Every single Purchase record will be permanently deleted.</li>
               <li>Every single Quick Bill entry will be permanently deleted.</li>
               <li>Your Analytics dashboard will be completely reset.</li>
-              <li>Your Products and Categories will remain unchanged.</li>
-              <li>Your Product stock counts will remain at their current numbers.</li>
+              {modalType === 'full' ? (
+                <>
+                  <li className="font-bold">Every single PRODUCT will be permanently deleted.</li>
+                  <li className="font-bold">Every single CATEGORY will be permanently deleted.</li>
+                </>
+              ) : (
+                <>
+                  <li>Your Products and Categories will remain unchanged.</li>
+                  <li>Your Product stock counts will remain at their current numbers.</li>
+                </>
+              )}
             </ul>
           </div>
 
           <p className="text-dark-600 font-medium pt-2">
-            To confirm this action, please type <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-red-600 font-bold">DELETE</span> in the box below:
+            To confirm this action, please type <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-red-600 font-bold uppercase">{modalType === 'full' ? 'RESET STORE' : 'CLEAR TRANSACTIONS'}</span> in the box below:
           </p>
 
           <form onSubmit={handleClearData}>
@@ -178,7 +222,7 @@ const Settings: React.FC = () => {
               type="text"
               value={clearConfirmation}
               onChange={(e) => setClearConfirmation(e.target.value)}
-              placeholder="Type DELETE"
+              placeholder={`Type ${modalType === 'full' ? 'RESET STORE' : 'CLEAR TRANSACTIONS'}`}
               className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 mb-6 font-mono text-center tracking-widest uppercase"
               required
             />
@@ -198,7 +242,7 @@ const Settings: React.FC = () => {
                 type="submit" 
                 variant="danger" 
                 loading={isClearing}
-                disabled={clearConfirmation !== 'DELETE'}
+                disabled={clearConfirmation !== (modalType === 'full' ? 'RESET STORE' : 'CLEAR TRANSACTIONS')}
               >
                 I understand, delete data
               </Button>

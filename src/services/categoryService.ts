@@ -47,3 +47,9 @@ export const addCategory = async (data: CategoryFormData): Promise<string> => {
 export const deleteCategory = async (id: string): Promise<void> => {
   await deleteDoc(doc(db, COLLECTION, id));
 };
+
+export const clearAllCategories = async (): Promise<void> => {
+  const snapshot = await getDocs(collection(db, COLLECTION));
+  const deletePromises = snapshot.docs.map(d => deleteDoc(doc(db, COLLECTION, d.id)));
+  await Promise.all(deletePromises);
+};
