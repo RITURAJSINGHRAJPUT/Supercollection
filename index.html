@@ -8,6 +8,9 @@
     <meta name="description" content="Super Collection - Your premium destination for mobile accessories and custom gifts." />
     <link rel="apple-touch-icon" href="/pwa-192x192.png" />
     <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="SuperCollection" />
     <title>Super Collection</title>
     <script>
       // Handle chunk load errors (common after new deployments)
@@ -30,7 +33,9 @@
     <script>
       if ('serviceWorker' in navigator && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js');
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('Service Worker registered successfully:', reg.scope))
+            .catch(err => console.error('Service Worker registration failed:', err));
         });
 
         let refreshing = false;

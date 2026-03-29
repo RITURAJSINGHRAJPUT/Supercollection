@@ -16,33 +16,80 @@ export interface AnalyticsData {
   dailySales: { date: string; sales: number; purchases: number }[];
 }
 
+export interface AnalyticsFilters {
+  startDate: string;
+  endDate: string;
+  productId: string;
+  category: string;
+}
+
 export const computeAnalytics = (
   sales: Sale[],
   purchases: Purchase[],
   products: Product[],
   quickSales: QuickEntry[] = [],
-  quickPurchases: QuickEntry[] = []
+  quickPurchases: QuickEntry[] = [],
+  filters?: AnalyticsFilters
 ): AnalyticsData => {
-  const standardSalesTotal = sales.reduce((sum, s) => sum + s.total, 0);
-  const quickSalesTotal = quickSales.reduce((sum, s) => sum + s.total, 0);
+  // Apply filters if provided
+  const filteredSales = !filters ? sales : sales.filter(s => {
+    const sDate = new Date(s.date).toISOString().split('T')[0];
+    const matchesDate = (!filters.startDate || sDate >= filters.startDate) && 
+                       (!filters.endDate || sDate <= filters.endDate);
+    const matchesProduct = !filters.productId || s.productId === filters.productId;
+    const product = products.find(p => p.id === s.productId);
+    const matchesCategory = !filters.category || (product && product.category === filters.category);
+    return matchesDate && matchesProduct && matchesCategory;
+  });
+
+  const filteredPurchases = !filters ? purchases : purchases.filter(p => {
+    const pDate = new Date(p.date).toISOString().split('T')[0];
+    const matchesDate = (!filters.startDate || pDate >= filters.startDate) && 
+                       (!filters.endDate || pDate <= filters.endDate);
+    const matchesProduct = !filters.productId || p.productId === filters.productId;
+    const product = products.find(pr => pr.id === p.productId);
+    const matchesCategory = !filters.category || (product && product.category === filters.category);
+    return matchesDate && matchesProduct && matchesCategory;
+  });
+
+  const filteredQuickSales = !filters ? quickSales : quickSales.filter(s => {
+    const sDate = new Date(s.date).toISOString().split('T')[0];
+    const matchesDate = (!filters.startDate || sDate >= filters.startDate) && 
+                       (!filters.endDate || sDate <= filters.endDate);
+    const matchesProduct = !filters.productId; // Quick entries don't have product ID
+    const matchesCategory = !filters.category || s.category === filters.category;
+    return matchesDate && matchesProduct && matchesCategory;
+  });
+
+  const filteredQuickPurchases = !filters ? quickPurchases : quickPurchases.filter(p => {
+    const pDate = new Date(p.date).toISOString().split('T')[0];
+    const matchesDate = (!filters.startDate || pDate >= filters.startDate) && 
+                       (!filters.endDate || pDate <= filters.endDate);
+    const matchesProduct = !filters.productId; // Quick entries don't have product ID
+    const matchesCategory = !filters.category || p.category === filters.category;
+    return matchesDate && matchesProduct && matchesCategory;
+  });
+
+  const standardSalesTotal = filteredSales.reduce((sum, s) => sum + s.total, 0);
+  const quickSalesTotal = filteredQuickSales.reduce((sum, s) => sum + s.total, 0);
   const totalSales = standardSalesTotal + quickSalesTotal;
 
-  const standardPurchasesTotal = purchases.reduce((sum, p) => sum + p.total, 0);
-  const quickPurchasesTotal = quickPurchases.reduce((sum, p) => sum + p.total, 0);
+  const standardPurchasesTotal = filteredPurchases.reduce((sum, p) => sum + p.total, 0);
+  const quickPurchasesTotal = filteredQuickPurchases.reduce((sum, p) => sum + p.total, 0);
   const totalPurchases = standardPurchasesTotal + quickPurchasesTotal;
 
   const profit = totalSales - totalPurchases;
 
   // Category-wise sales
   const categoryMap = new Map<string, number>();
-  sales.forEach(sale => {
+  filteredSales.forEach(sale => {
     const product = products.find(p => p.id === sale.productId);
     if (product) {
       const cat = product.category;
       categoryMap.set(cat, (categoryMap.get(cat) || 0) + sale.total);
     }
   });
-  quickSales.forEach(sale => {
+  filteredQuickSales.forEach(sale => {
     categoryMap.set(sale.category, (categoryMap.get(sale.category) || 0) + sale.total);
   });
   const categorySales = Array.from(categoryMap.entries())
@@ -51,7 +98,7 @@ export const computeAnalytics = (
 
   // Top-selling products
   const productSalesMap = new Map<string, { name: string; quantity: number; total: number }>();
-  sales.forEach(sale => {
+  filteredSales.forEach(sale => {
     const product = products.find(p => p.id === sale.productId);
     const name = product?.name || sale.productName || 'Unknown';
     const existing = productSalesMap.get(sale.productId);
@@ -72,25 +119,25 @@ export const computeAnalytics = (
 
   // Monthly reports
   const monthlyMap = new Map<string, { sales: number; purchases: number }>();
-  sales.forEach(sale => {
+  filteredSales.forEach(sale => {
     const month = getMonthYear(new Date(sale.date));
     const existing = monthlyMap.get(month) || { sales: 0, purchases: 0 };
     existing.sales += sale.total;
     monthlyMap.set(month, existing);
   });
-  quickSales.forEach(sale => {
+  filteredQuickSales.forEach(sale => {
     const month = getMonthYear(new Date(sale.date));
     const existing = monthlyMap.get(month) || { sales: 0, purchases: 0 };
     existing.sales += sale.total;
     monthlyMap.set(month, existing);
   });
-  purchases.forEach(purchase => {
+  filteredPurchases.forEach(purchase => {
     const month = getMonthYear(new Date(purchase.date));
     const existing = monthlyMap.get(month) || { sales: 0, purchases: 0 };
     existing.purchases += purchase.total;
     monthlyMap.set(month, existing);
   });
-  quickPurchases.forEach(purchase => {
+  filteredQuickPurchases.forEach(purchase => {
     const month = getMonthYear(new Date(purchase.date));
     const existing = monthlyMap.get(month) || { sales: 0, purchases: 0 };
     existing.purchases += purchase.total;
@@ -100,27 +147,27 @@ export const computeAnalytics = (
     .map(([month, data]) => ({ month, ...data }))
     .reverse();
 
-  // Daily reports (last 30 days)
+  // Daily reports
   const dailyMap = new Map<string, { sales: number; purchases: number }>();
-  sales.forEach(sale => {
+  filteredSales.forEach(sale => {
     const date = new Date(sale.date).toISOString().split('T')[0];
     const existing = dailyMap.get(date) || { sales: 0, purchases: 0 };
     existing.sales += sale.total;
     dailyMap.set(date, existing);
   });
-  quickSales.forEach(sale => {
+  filteredQuickSales.forEach(sale => {
     const date = new Date(sale.date).toISOString().split('T')[0];
     const existing = dailyMap.get(date) || { sales: 0, purchases: 0 };
     existing.sales += sale.total;
     dailyMap.set(date, existing);
   });
-  purchases.forEach(purchase => {
+  filteredPurchases.forEach(purchase => {
     const date = new Date(purchase.date).toISOString().split('T')[0];
     const existing = dailyMap.get(date) || { sales: 0, purchases: 0 };
     existing.purchases += purchase.total;
     dailyMap.set(date, existing);
   });
-  quickPurchases.forEach(purchase => {
+  filteredQuickPurchases.forEach(purchase => {
     const date = new Date(purchase.date).toISOString().split('T')[0];
     const existing = dailyMap.get(date) || { sales: 0, purchases: 0 };
     existing.purchases += purchase.total;
@@ -128,18 +175,24 @@ export const computeAnalytics = (
   });
   const dailySales = Array.from(dailyMap.entries())
     .map(([date, data]) => ({ date, ...data }))
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(-30);
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  // If no date filters, show last 30 days only to avoid overcrowding
+  const finalDailySales = (!filters?.startDate && !filters?.endDate) 
+    ? dailySales.slice(-30) 
+    : dailySales;
 
   return {
     totalSales,
     totalPurchases,
     profit,
-    salesCount: sales.length + quickSales.length,
-    purchasesCount: purchases.length + quickPurchases.length,
+    salesCount: filteredSales.length + filteredQuickSales.length,
+    purchasesCount: filteredPurchases.length + filteredQuickPurchases.length,
     categorySales,
     topProducts,
     monthlySales,
-    dailySales,
+    dailySales: finalDailySales,
   };
 };
+
+

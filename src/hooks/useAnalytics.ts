@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { computeAnalytics } from '../services/analyticsService';
+import { computeAnalytics, type AnalyticsFilters } from '../services/analyticsService';
 import type { Sale } from '../types/sales';
 import type { Purchase } from '../types/purchase';
 import type { Product } from '../types/product';
@@ -10,11 +10,12 @@ export const useAnalytics = (
   purchases: Purchase[], 
   products: Product[],
   quickSales: QuickEntry[] = [],
-  quickPurchases: QuickEntry[] = []
+  quickPurchases: QuickEntry[] = [],
+  filters?: AnalyticsFilters
 ) => {
   const analytics = useMemo(
-    () => computeAnalytics(sales, purchases, products, quickSales, quickPurchases),
-    [sales, purchases, products, quickSales, quickPurchases]
+    () => computeAnalytics(sales, purchases, products, quickSales, quickPurchases, filters),
+    [sales, purchases, products, quickSales, quickPurchases, filters]
   );
 
   return analytics;

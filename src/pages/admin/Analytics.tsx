@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Download } from 'lucide-react';
+import { Download, RotateCcw } from 'lucide-react';
 import { useProducts } from '../../hooks/useProducts';
 import { useSales } from '../../hooks/useSales';
 import { useAnalytics } from '../../hooks/useAnalytics';
@@ -10,9 +10,13 @@ import SummaryCards from '../../components/analytics/SummaryCards';
 import SalesChart from '../../components/analytics/SalesChart';
 import CategoryChart from '../../components/analytics/CategoryChart';
 import Button from '../../components/common/Button';
+import Input from '../../components/common/Input';
 import { getQuickSales, getQuickPurchases } from '../../services/quickBillService';
+import { getCategories } from '../../services/categoryService';
 import type { Purchase } from '../../types/purchase';
 import type { QuickEntry } from '../../types/quickBill';
+import type { Category } from '../../types/category';
+import type { AnalyticsFilters } from '../../services/analyticsService';
 
 const Analytics: React.FC = () => {
   const { products, loading: productsLoading } = useProducts();
@@ -21,22 +25,31 @@ const Analytics: React.FC = () => {
   const [purchasesLoading, setPurchasesLoading] = React.useState(true);
   const [quickSales, setQuickSales] = React.useState<QuickEntry[]>([]);
   const [quickPurchases, setQuickPurchases] = React.useState<QuickEntry[]>([]);
+  const [categories, setCategories] = React.useState<Category[]>([]);
   const [quickLoading, setQuickLoading] = React.useState(true);
   const [isExporting, setIsExporting] = React.useState(false);
+  const [filters, setFilters] = React.useState<AnalyticsFilters>({
+    startDate: '',
+    endDate: '',
+    productId: '',
+    category: '',
+  });
   
   const reportRef = useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const [pData, qsData, qpData] = await Promise.all([
+        const [pData, qsData, qpData, cData] = await Promise.all([
           getPurchases(),
           getQuickSales(),
-          getQuickPurchases()
+          getQuickPurchases(),
+          getCategories()
         ]);
         setPurchases(pData);
         setQuickSales(qsData);
         setQuickPurchases(qpData);
+        setCategories(cData);
       } catch (err) {
         console.error('Error fetching analytics data:', err);
       } finally {
@@ -47,7 +60,7 @@ const Analytics: React.FC = () => {
     fetchData();
   }, []);
 
-  const analytics = useAnalytics(sales, purchases, products, quickSales, quickPurchases);
+  const analytics = useAnalytics(sales, purchases, products, quickSales, quickPurchases, filters);
 
   if (productsLoading || salesLoading || purchasesLoading || quickLoading) {
     return (
@@ -56,6 +69,30 @@ const Analytics: React.FC = () => {
       </div>
     );
   }
+
+  const handleQuickRange = (range: string) => {
+    const today = new Date();
+    let start = new Date();
+    
+    switch (range) {
+      case 'today':
+        break;
+      case 'weekly':
+        start.setDate(today.getDate() - 7);
+        break;
+      case 'monthly':
+        start.setMonth(today.getMonth() - 1);
+        break;
+      default:
+        return;
+    }
+    
+    setFilters({
+      ...filters,
+      startDate: start.toISOString().split('T')[0],
+      endDate: today.toISOString().split('T')[0]
+    });
+  };
 
   const handleExportPdf = async () => {
     if (!reportRef.current) return;
@@ -79,6 +116,76 @@ const Analytics: React.FC = () => {
         </Button>
       </div>
 
+      {/* Filters Bar */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-dark-600">Quick Select</label>
+            <select
+              className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none bg-gray-50/50"
+              onChange={(e) => handleQuickRange(e.target.value)}
+              value=""
+            >
+              <option value="" disabled>Choose Period</option>
+              <option value="today">Today</option>
+              <option value="weekly">Last 7 Days</option>
+              <option value="monthly">Last 30 Days</option>
+            </select>
+          </div>
+          <Input
+            label="From Date"
+            type="date"
+            value={filters.startDate}
+            onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+          />
+          <Input
+            label="To Date"
+            type="date"
+            value={filters.endDate}
+            onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+          />
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-dark-600">Product</label>
+            <select
+              className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none"
+              value={filters.productId}
+              onChange={(e) => setFilters({ ...filters, productId: e.target.value })}
+            >
+              <option value="">All Products</option>
+              {products.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-dark-600">Category</label>
+            <select
+              className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none"
+              value={filters.category}
+              onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+            >
+              <option value="">All Categories</option>
+              {categories.map(c => (
+                <option key={c.id} value={c.name}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center">
+            {(filters.startDate || filters.endDate || filters.productId || filters.category) && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-primary-600 hover:text-primary-700 hover:bg-primary-50 h-10 w-full lg:w-auto"
+                onClick={() => setFilters({ startDate: '', endDate: '', productId: '', category: '' })}
+                icon={<RotateCcw size={16} />}
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div id="analytics-report" ref={reportRef} className="space-y-6 bg-gray-50 p-2 sm:p-0">
         {/* Hidden title for PDF export */}
         <div className="hidden pdf-show text-center mb-8">
@@ -94,7 +201,7 @@ const Analytics: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Daily Sales Chart */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h3 className="font-bold text-dark-800 mb-6">Daily Performance (Last 30 Days)</h3>
+            <h3 className="font-bold text-dark-800 mb-6">Daily Performance</h3>
             <SalesChart data={analytics.dailySales} />
           </div>
 

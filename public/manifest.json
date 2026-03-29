@@ -1,11 +1,15 @@
 {
+  "id": "/",
   "name": "Super Collection Store",
   "short_name": "SuperCollection",
   "description": "Your premium destination for mobile accessories and custom gifts.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#FF6B00",
+  "categories": ["shopping", "gifts"],
   "icons": [
     {
       "src": "/pwa-192x192.png",
